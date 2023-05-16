@@ -2,24 +2,29 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:title="Search"
-        android:icon="@drawable/menu_search"
-        android:id="@+id/menuSearch"
-        app:showAsAction="ifRoom|collapseActionView"
-        app:actionViewClass="androidx.appcompat.widget.SearchView"
-        />
+
 
     <item
         android:title="Home"
+        android:orderInCategory="100"
         android:icon="@drawable/toolbar_home"
         android:id="@+id/menuHome"
-        app:showAsAction="ifRoom"
+        app:showAsAction="ifRoom|withText"
         />
     <item
-        android:title="WatchList"
-        android:icon="@drawable/toolbar_list"
         android:id="@+id/menuList"
-        app:showAsAction="ifRoom"
-        />
+        android:orderInCategory="100"
+        android:enabled="false"
+        android:title="WatchList"
+        android:visible="true"
+        app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/menuSearch"
+        android:orderInCategory="100"
+        android:enabled="true"
+        android:icon="@drawable/menu_search"
+        android:title="Search"
+        android:visible="true"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="ifRoom|collapseActionView" />
 </menu>

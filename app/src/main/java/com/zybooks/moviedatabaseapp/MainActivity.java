@@ -1,6 +1,7 @@
 package com.zybooks.moviedatabaseapp;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
@@ -54,10 +55,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState==null)
-        {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new fragment_item()).commit();
-        }
+//        if (savedInstanceState==null)
+//        {
+//            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new fragment_item()).commit();
+//        }
+
+        //ActionBar actionBar = getSupportActionBar();
+        //actionBar.setTitle("Test");
 
         btnPositive = (Button) findViewById(R.id.btnPositive);
         btnNegative = (Button) findViewById(R.id.btnNegative);
@@ -136,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater=getMenuInflater();
-        getMenuInflater().inflate(R.menu.menu, menu);
+        inflater.inflate(R.menu.menu, menu);
 
         MenuItem.OnActionExpandListener onActionExpandListener=new MenuItem.OnActionExpandListener() {
             @Override
@@ -171,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         return true;
+
         }
 
     @Override
