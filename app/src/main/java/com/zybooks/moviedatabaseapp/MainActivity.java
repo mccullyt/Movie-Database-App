@@ -54,7 +54,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        if (savedInstanceState==null)
+        {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new fragment_item()).commit();
+        }
 
         btnPositive = (Button) findViewById(R.id.btnPositive);
         btnNegative = (Button) findViewById(R.id.btnNegative);
