@@ -24,7 +24,7 @@ import java.util.List;
 public class fragment_item extends Fragment implements AdapterView.OnItemClickListener {
     Context thisContext;
     List<String> watchlist = new LinkedList<String>();
-
+    String[] arr;
 
 
     @Nullable
@@ -49,7 +49,7 @@ public class fragment_item extends Fragment implements AdapterView.OnItemClickLi
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         //String[] city = {"Mumbai","Delhi","Bangalore","Hyderabad","Chennai","Kolkata","Pune","Surat","Jaipur","Kanpur","Lucknow"};
-        String[] arr = new String[watchlist.size()];
+       arr = new String[watchlist.size()];
         for (int i = 0; i < watchlist.size(); i++)
             arr[i] = watchlist.get(i);
         ListView listView=(ListView)view.findViewById(R.id.lst);
@@ -62,26 +62,10 @@ public class fragment_item extends Fragment implements AdapterView.OnItemClickLi
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-        if(position == 0)
-        {
-            Toast.makeText(getActivity(),Integer.toString(position),Toast.LENGTH_SHORT).show();
-            //((MainActivity) getActivity()).updateTitleTxt(); //updateMovie(arr[position)
-
-        }
-        if(position == 1)
-        {
-            Toast.makeText(getActivity(),"Delhi",Toast.LENGTH_SHORT).show();
-        }
-        if(position == 2)
-        {
-            Toast.makeText(getActivity(),"Bangalore",Toast.LENGTH_SHORT).show();
-        }
-        if(position == 3)
-        {
-            Toast.makeText(getActivity(),"Hyderabad",Toast.LENGTH_SHORT).show();
-        }
-
-
+//
+        Toast.makeText(getActivity(),Integer.toString(position),Toast.LENGTH_SHORT).show();
+        ((MainActivity) getActivity()).closeFragment(); //updateMovie(arr[position])
+        ((MainActivity) getActivity()).updateMovie(arr[position]);
     }
     private String readFromInternalFile() throws IOException {
         FileInputStream inputStream = thisContext.openFileInput("watchlist");

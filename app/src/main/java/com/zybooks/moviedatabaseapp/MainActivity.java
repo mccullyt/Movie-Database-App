@@ -7,6 +7,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentContainerView;
 
+import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +34,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -121,8 +123,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(MainActivity.this, "Positive", Toast.LENGTH_LONG).show();
+                //Toast.makeText(MainActivity.this, "Positive", Toast.LENGTH_LONG).show();
                 //apiRequestBy();
+                FileOutputStream outputStream = null;
+                try {
+                    outputStream = openFileOutput("watchlist", Context.MODE_PRIVATE);
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+                PrintWriter writer = new PrintWriter(outputStream);
+
+                try {
+                    writer.println(movieObject.getInt("id")+";"+movieObject.getString("title"));
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+                writer.close();
 
 
             }
@@ -180,8 +196,11 @@ public class MainActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                //Toast.makeText(MainActivity.this, "Text Submit",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Press Poster Image for Movie Description",Toast.LENGTH_LONG).show();
                 apiSearch(query);
+                resetPref();
+                updateVisibility();
+                updateBtnTxt();
                 return false;
             }
 
@@ -201,16 +220,19 @@ public class MainActivity extends AppCompatActivity {
         switch(item.getItemId())
         {
             case R.id.menuHome:
-                //Toast.makeText(this,"Home",Toast.LENGTH_LONG).show();
+                Toast.makeText(this,"Home",Toast.LENGTH_LONG).show();
                 //updateState("movie_poster_state",true);
+                //closeFragment();
                 resetPref();
                 updateVisibility();
                 updateBtnTxt();
+                break;
             case R.id.menuList:
-                //Toast.makeText(this,"Home",Toast.LENGTH_LONG).show();
+                Toast.makeText(this,"Watchlist",Toast.LENGTH_LONG).show();
                 updateState("parent_list_view_state",true);
                 updateVisibility();
                 updateBtnTxt();
+                break;
 
 
 
@@ -247,6 +269,22 @@ public class MainActivity extends AppCompatActivity {
         movieObject.put("info",o.getString("overview"));
 
         txtTitle.setText(movieObject.getString("title"));
+        Glide.with(this).load("https://image.tmdb.org/t/p/w500/"+movieObject.getString("poster")).into(imgPoster);
+        txtInfo.setText(movieObject.getString("info"));
+
+    }
+
+    protected void updateMovieObjectSearch(@NonNull JSONObject o) throws JSONException{
+        JSONArray results = o.getJSONArray("results");
+        JSONObject firstResult = results.getJSONObject(0);
+        movieObject.put("title",firstResult.getString("original_title"));
+        movieObject.put("poster",firstResult.getString("poster_path"));
+        movieObject.put("info",firstResult.getString("overview"));
+
+        txtTitle.setText(movieObject.getString("title"));
+        Glide.with(this).load("https://image.tmdb.org/t/p/w500/"+movieObject.getString("poster")).into(imgPoster);
+        txtInfo.setText(movieObject.getString("info"));
+
     }
     protected void resetPref() {
         SharedPreferences.Editor editor = sharedpreferences.edit();
@@ -313,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
             btnPositive.setText("NA");
             btnNegative.setText("NA");
             txtTitle.setText("Welcome!");
-            txtInfo.setText("Insert Directions");
+            //txtInfo.setText("Insert Directions");
         } else if (sharedpreferences.getBoolean("new_list_state", false)) {
             //hide imgPoster
             //hide txtInfo
@@ -356,8 +394,8 @@ public class MainActivity extends AppCompatActivity {
             //show txtInfo
             btnPositive.setText("Add");
             btnNegative.setText("Remove");
-            txtTitle.setText("Movie Title");
-            txtInfo.setText("Get Movie Info from API");
+            //txtTitle.setText("Movie Title");
+            //txtInfo.setText("Get Movie Info from API");
         } else if (sharedpreferences.getBoolean("movie_trailer_state", false)) {
             //hide imgPoster
             //hide fragList
@@ -408,7 +446,7 @@ public class MainActivity extends AppCompatActivity {
             fragmentContainerView.setVisibility(View.GONE);
             imgPoster.setVisibility(View.GONE);
             txtInfo.setVisibility(View.VISIBLE);
-            txtInfo.setText("Get Movie Description from API.");
+            //txtInfo.setText("Get Movie Description from API.");
 
         }
 
@@ -443,6 +481,39 @@ public class MainActivity extends AppCompatActivity {
     protected void apiSearch(String q){
         q.replace(' ','+' );
         Toast.makeText(MainActivity.this, "API Search: "+q.replace(' ','+'),Toast.LENGTH_SHORT).show();
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "https://api.themoviedb.org/3/search/movie?api_key=8a0b124ba93ae2f067965f8895e7c0d2&query="+q;
+
+
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+//                        txtInfo.setText("Response is: " + response);
+                        setAPIResponseSP(response);
+                        stringToJSON(response);
+                        //txtInfo.setText(sharedpreferences.getString("api_response", "No Data"));
+                        try {
+                            updateMovieObjectSearch(responseObject);
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                txtInfo.setText("That didn't work!");
+            }
+
+        });
+
+        // Add the request to the RequestQueue.
+        // queue.add(stringRequest);
+        MySingleton.getInstance(MainActivity.this).addToRequestQueue(stringRequest);
     }
     protected void apiRequestByID(int i){
 
@@ -498,8 +569,23 @@ public class MainActivity extends AppCompatActivity {
         return id;
     }
 
-    private void updateMovie(String s){
-        //fragmentContainerView.removeView(fragmentContainerView);
+    void updateMovie(String s){
+        apiRequestByID(getMovieID(s));
+        try {
+            txtTitle.setText(movieObject.getString("title"));
+            Glide.with(this).load("https://image.tmdb.org/t/p/w500/"+movieObject.getString("poster")).into(imgPoster);
+            txtInfo.setText(movieObject.getString("info"));
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    public void closeFragment() {
+        resetPref();
+        updateVisibility();
+        updateBtnTxt();
 
     }
 
