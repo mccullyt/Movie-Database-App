@@ -1,15 +1,6 @@
 package com.zybooks.moviedatabaseapp;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.FragmentContainerView;
-
-import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
@@ -20,6 +11,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -33,26 +29,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
 
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivityBackup extends AppCompatActivity {
 
     Button btnPositive;
     Button btnNegative;
-    FragmentContainerView fragmentContainerView;
     ImageView imgPoster;
     SharedPreferences sharedpreferences;
     TextView txtTitle;
     TextView txtInfo;
 
-    //private Toolbar toolbar;
+    private Toolbar toolbar;
     public static final String MyPREFERENCES = "MyPrefs";
-    public static String movieTitle;
-    public static String movieInfo;
-    public static String moviePoster;
 
     public static JSONObject movieObject = new JSONObject();
     public static JSONObject responseObject = new JSONObject();
@@ -69,26 +57,20 @@ public class MainActivity extends AppCompatActivity {
 //            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new fragment_item()).commit();
 //        }
 
-        try {
-            writeToInternalFile();
-            //String fileContents = readFromInternalFile();
-            //Log.d(TAG, "File contents = " + fileContents);
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        //ActionBar actionBar = getSupportActionBar();
+        //actionBar.setTitle("Test");
 
-        fragmentContainerView = (FragmentContainerView) findViewById(R.id.fragmentContainerView);
+
+
         btnPositive = (Button) findViewById(R.id.btnPositive);
         btnNegative = (Button) findViewById(R.id.btnNegative);
         imgPoster = (ImageView) findViewById(R.id.imgPoster);
         Glide.with(this).load("https://image.tmdb.org/t/p/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.png").into(imgPoster);
         txtTitle = (TextView) findViewById(R.id.txtTitle);
         txtInfo = (TextView) findViewById(R.id.txtInfo);
-        //toolbar=findViewById(R.id.myToolBar);
+        toolbar=findViewById(R.id.myToolBar);
         sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
-//        fragmentContainerView.onVis
-
+        setSupportActionBar(toolbar);
         try {
             createMovieObject();
         } catch (JSONException e) {
@@ -100,12 +82,11 @@ public class MainActivity extends AppCompatActivity {
         //updatePoster();
 
 
-
         imgPoster.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(MainActivity.this, "Positive", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivityBackup.this, "Positive", Toast.LENGTH_LONG).show();
 
 
                 SharedPreferences.Editor editor = sharedpreferences.edit();
@@ -121,8 +102,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(MainActivity.this, "Positive", Toast.LENGTH_LONG).show();
-                //apiRequestBy();
+                Toast.makeText(MainActivityBackup.this, "Positive", Toast.LENGTH_LONG).show();
+                request();
 
 
             }
@@ -131,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(MainActivity.this, "Negative", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivityBackup.this, "Negative", Toast.LENGTH_LONG).show();
                 //testStringToJson();
                 getCollection(responseObject);
             }
@@ -140,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(MainActivity.this, "Positive", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivityBackup.this, "Positive", Toast.LENGTH_LONG).show();
 
                 // TODO this click listener needs to show a trailer
                 SharedPreferences.Editor editor = sharedpreferences.edit();
@@ -163,14 +144,14 @@ public class MainActivity extends AppCompatActivity {
         MenuItem.OnActionExpandListener onActionExpandListener=new MenuItem.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(@NonNull MenuItem menuItem) {
-                Toast.makeText(MainActivity.this, "Search is Expanded",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivityBackup.this, "Search is Expanded",Toast.LENGTH_SHORT).show();
                 return true;
             }
 
 
             @Override
             public boolean onMenuItemActionCollapse(@NonNull MenuItem menuItem) {
-                Toast.makeText(MainActivity.this, "Search is Collapse",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivityBackup.this, "Search is Collapse",Toast.LENGTH_SHORT).show();
                 return true;
             }
         };
@@ -202,22 +183,12 @@ public class MainActivity extends AppCompatActivity {
         {
             case R.id.menuHome:
                 //Toast.makeText(this,"Home",Toast.LENGTH_LONG).show();
-                //updateState("movie_poster_state",true);
-                resetPref();
+                updateState("movie_poster_state",true);
                 updateVisibility();
                 updateBtnTxt();
-            case R.id.menuList:
-                //Toast.makeText(this,"Home",Toast.LENGTH_LONG).show();
-                updateState("parent_list_view_state",true);
-                updateVisibility();
-                updateBtnTxt();
-
-
-
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     protected void testFirstUse() {
         if (sharedpreferences.getBoolean("first_time_use", false)) {
@@ -240,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void updateMovieObject(@NonNull JSONObject o) throws JSONException{
-
         movieObject.put("id",o.getInt("id"));
         movieObject.put("title",o.getString("original_title"));
         movieObject.put("poster",o.getString("poster_path"));
@@ -369,50 +339,58 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-
     protected void updateVisibility(){
         if (sharedpreferences.getBoolean("first_time_use", false)) {
             //hide imgPoster
             //hide fragList
             //show txtInfo
-            //imgPoster.setVisibility(View.GONE);
-        }else if (sharedpreferences.getBoolean("delete_list_state", false)) {
+            imgPoster.setVisibility(View.GONE);
+        } else if (sharedpreferences.getBoolean("new_list_state", false)) {
             //hide imgPoster
             //hide txtInfo
             //show fragList
-            fragmentContainerView.setVisibility(View.VISIBLE);
             imgPoster.setVisibility(View.GONE);
-            txtInfo.setVisibility(View.GONE);
-
-        } else if (sharedpreferences.getBoolean("parent_list_view_state", false)) {
+        } else if (sharedpreferences.getBoolean("delete_list_state", false)) {
             //hide imgPoster
             //hide txtInfo
             //show fragList
-            fragmentContainerView.setVisibility(View.VISIBLE);
             imgPoster.setVisibility(View.GONE);
-            txtInfo.setVisibility(View.GONE);
-
+        } else if (sharedpreferences.getBoolean("parent_list_state", false)) {
+            //hide imgPoster
+            //hide txtInfo
+            //show fragList
+            imgPoster.setVisibility(View.GONE);
+        } else if (sharedpreferences.getBoolean("child_list_state", false)) {
+            //hide imgPoster
+            //hide txtInfo
+            //show fragList
+            imgPoster.setVisibility(View.GONE);
         } else if (sharedpreferences.getBoolean("movie_poster_state", false)) {
             //hide txtInfo
             //hide fragList
             //show imgPoster
-            fragmentContainerView.setVisibility(View.GONE);
-            imgPoster.setVisibility(View.VISIBLE);
             txtInfo.setVisibility(View.GONE);
-
+            imgPoster.setVisibility(View.VISIBLE);
 
         } else if (sharedpreferences.getBoolean("movie_info_state", false)) {
             //hide imgPoster
             //hide fragList
             //show txtInfo
-            fragmentContainerView.setVisibility(View.GONE);
-            imgPoster.setVisibility(View.GONE);
             txtInfo.setVisibility(View.VISIBLE);
             txtInfo.setText("Get Movie Description from API.");
+            imgPoster.setVisibility(View.GONE);
+
+        } else if (sharedpreferences.getBoolean("movie_trailer_state", false)) {
+            //hide imgPoster
+            //hide fragList
+            //show txtInfo
+            //sho movieTrailer
+            //TODO - Update this block to show a movie trailer and hide movie description
+            txtInfo.setVisibility(View.VISIBLE);
+            txtInfo.setText("Get Movie Trailer From Description from API.");
+            imgPoster.setVisibility(View.GONE);
 
         }
-
-
     }
     protected void testObjectToArray(){
 
@@ -442,13 +420,13 @@ public class MainActivity extends AppCompatActivity {
     }
     protected void apiSearch(String q){
         q.replace(' ','+' );
-        Toast.makeText(MainActivity.this, "API Search: "+q.replace(' ','+'),Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivityBackup.this, "API Search: "+q.replace(' ','+'),Toast.LENGTH_SHORT).show();
     }
-    protected void apiRequestByID(int i){
+    protected void request(){
 
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://api.themoviedb.org/3/movie/"+i+"?api_key=8a0b124ba93ae2f067965f8895e7c0d2&language=en-US";
+        String url = "https://api.themoviedb.org/3/movie/75780?api_key=8a0b124ba93ae2f067965f8895e7c0d2&language=en-US";
 
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -477,30 +455,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Add the request to the RequestQueue.
        // queue.add(stringRequest);
-        MySingleton.getInstance(MainActivity.this).addToRequestQueue(stringRequest);
-    }
-
-    private void writeToInternalFile() throws IOException {
-        FileOutputStream outputStream = openFileOutput("watchlist", Context.MODE_PRIVATE);
-        PrintWriter writer = new PrintWriter(outputStream);
-        writer.println("75780;Jack Reacher");
-        writer.println("11544;Lilo & Stitch");
-        writer.println("20760;Lilo & Stitch 2: Stitch Has a Glitch");
-        writer.println("21316;Leroy & Stitch");
-        writer.close();
-    }
-
-    private int getMovieID(String s){
-
-        int midPoint = s.indexOf(';');
-        int id = 0;
-        id = Integer.parseInt(s.substring(0,midPoint));
-        return id;
-    }
-
-    private void updateMovie(String s){
-        //fragmentContainerView.removeView(fragmentContainerView);
-
+        MySingleton.getInstance(MainActivityBackup.this).addToRequestQueue(stringRequest);
     }
 
 }//!class Main Activity
